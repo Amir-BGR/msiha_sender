@@ -7,7 +7,7 @@ from instagrapi import Client
 app = Flask(__name__)
 CORS(app)
 
-#  لاگین
+# لاگین
 cl = Client()
 try:
     cl.login(os.getenv('INSTA_USER'), os.getenv('INSTA_PASSWORD'))
@@ -21,26 +21,33 @@ def health():
 @app.route('/upload', methods=['POST'])
 def upload():
     data = request.json
-    img_url = data.get('img_url') # دقت کنید در وردپرس img_url بود
+    img_url = data.get('img_url')
     caption = data.get('caption')
     
     if not img_url:
         return {"status": "error", "message": "No image URL"}, 400
 
-    # در فایل app.py کد آپلود را اینگونه اصلاح کنید:
-try:
-    response = requests.get(img_url, stream=True) # اضافه کردن stream=True
-    with open('temp.jpg', 'wb') as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
+    try:
+        # دانلود و ذخیره عکس
+        response = requests.get(img_url, stream=True)
+        with open('temp.jpg', 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
             
-    cl.photo_upload('temp.jpg', caption)
-    
-    # حذف فایل بعد از آپلود برای آزاد شدن حافظه
-    if os.path.exists('temp.jpg'):
-        os.remove('temp.jpg')
+        # آپلود در اینستاگرام
+        cl.photo_upload('temp.jpg', caption)
         
-    return {"status": "success", "message": "Post uploaded!"}, 200
+        # حذف فایل موقت
+        if os.path.exists('temp.jpg'):
+            os.remove('temp.jpg')
+        
+        return {"status": "success", "message": "Post uploaded!"}, 200
+
+    except Exception as e:
+        # حذف فایل در صورت بروز خطا
+        if os.path.exists('temp.jpg'):
+            os.remove('temp.jpg')
+        return {"status": "error", "message": str(e)}, 500
 
 if __name__ == '__main__':
     app.run()
