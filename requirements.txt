@@ -2,3 +2,4 @@ flask
 gunicorn
 instagrapi
 requests
+flask-cors
