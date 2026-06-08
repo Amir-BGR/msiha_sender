@@ -7,7 +7,7 @@ from instagrapi import Client
 app = Flask(__name__)
 CORS(app)
 
-# لاگین
+#  لاگین
 cl = Client()
 try:
     cl.login(os.getenv('INSTA_USER'), os.getenv('INSTA_PASSWORD'))
