@@ -1,16 +1,18 @@
 from flask import Flask, request
-from flask_cors import CORS # این خط را اضافه کنید
+from flask_cors import CORS
 import os
 import requests
 from instagrapi import Client
 
 app = Flask(__name__)
-CORS(app) # این خط را اضافه کنید تا CORS فعال شود
+CORS(app)
 
-# ایجاد کلاینت اینستاگرام
+# لاگین
 cl = Client()
-# لاگین با استفاده از متغیرهای محیطی که در Render تنظیم کردید
-cl.login(os.getenv('INSTA_USER'), os.getenv('INSTA_PASSWORD'))
+try:
+    cl.login(os.getenv('INSTA_USER'), os.getenv('INSTA_PASSWORD'))
+except Exception as e:
+    print(f"Login failed: {e}")
 
 @app.route('/healthz')
 def health():
@@ -19,23 +21,19 @@ def health():
 @app.route('/upload', methods=['POST'])
 def upload():
     data = request.json
-    img_url = data.get('image_url')
+    img_url = data.get('img_url') # دقت کنید در وردپرس img_url بود
     caption = data.get('caption')
     
-    if not img_url or not caption:
-        return {"status": "error", "message": "Missing data"}, 400
+    if not img_url:
+        return {"status": "error", "message": "No image URL"}, 400
 
     try:
-        # ۱. دانلود عکس از لینک ارسالی وردپرس
         response = requests.get(img_url)
         with open('temp.jpg', 'wb') as f:
             f.write(response.content)
             
-        # ۲. آپلود در اینستاگرام
         cl.photo_upload('temp.jpg', caption)
-        
-        return {"status": "success", "message": "Post uploaded successfully"}, 200
-        
+        return {"status": "success", "message": "Post uploaded!"}, 200
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
