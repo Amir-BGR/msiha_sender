@@ -1,9 +1,11 @@
 from flask import Flask, request
+from flask_cors import CORS # این خط را اضافه کنید
 import os
 import requests
 from instagrapi import Client
 
 app = Flask(__name__)
+CORS(app) # این خط را اضافه کنید تا CORS فعال شود
 
 # ایجاد کلاینت اینستاگرام
 cl = Client()
