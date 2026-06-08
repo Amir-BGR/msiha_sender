@@ -27,15 +27,20 @@ def upload():
     if not img_url:
         return {"status": "error", "message": "No image URL"}, 400
 
-    try:
-        response = requests.get(img_url)
-        with open('temp.jpg', 'wb') as f:
-            f.write(response.content)
+    # در فایل app.py کد آپلود را اینگونه اصلاح کنید:
+try:
+    response = requests.get(img_url, stream=True) # اضافه کردن stream=True
+    with open('temp.jpg', 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
             
-        cl.photo_upload('temp.jpg', caption)
-        return {"status": "success", "message": "Post uploaded!"}, 200
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
+    cl.photo_upload('temp.jpg', caption)
+    
+    # حذف فایل بعد از آپلود برای آزاد شدن حافظه
+    if os.path.exists('temp.jpg'):
+        os.remove('temp.jpg')
+        
+    return {"status": "success", "message": "Post uploaded!"}, 200
 
 if __name__ == '__main__':
     app.run()
